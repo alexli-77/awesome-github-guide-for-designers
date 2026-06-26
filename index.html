@@ -462,82 +462,82 @@
 <!-- ============ 6. Rebase / Stash ============ -->
 <section id="s6">
   <h2 class="sec"><span class="n">6</span>Rebase / Stash 怎么用</h2>
-  <p class="lead">这两个词听起来像高级魔法,但日常只记两个场景就够了:rebase 用来"把你的分支挪到最新 main 后面",stash 用来"临时收起手上没做完的改动"。</p>
+  <p class="lead">只记两个画面就够了:rebase 是"把你的草稿挪到最新版底稿上继续画";stash 是"先把没画完的东西收进抽屉,桌面清空,等会再拿出来"。</p>
 
   <div class="grid">
-    <div class="card"><h4>🔁 Rebase</h4><p>让你的需求分支基于最新 main 重新排队。适合 PR 提交前同步主分支,历史会更干净。</p></div>
-    <div class="card"><h4>📦 Stash</h4><p>把没 commit 的改动临时放进抽屉。适合突然要切分支、拉更新、处理紧急 bug。</p></div>
+    <div class="card"><h4>🔁 Rebase</h4><p>你的改动不变,只是换到最新 main 后面继续。适合提 PR 前用,让审核的人看到一条更顺的改动线。</p></div>
+    <div class="card"><h4>📦 Stash</h4><p>你的半成品先不提交,也不丢掉。适合突然要切去处理别的事,回来还能接着做。</p></div>
   </div>
 
-  <div class="analogy">🎨 <b>Figma 类比:</b> rebase 像把你的草稿复制到最新主文件上继续改;stash 像先把没画完的图层暂时隐藏并保存,处理完别的事再放回来。</div>
+  <div class="analogy">🎨 <b>Figma 类比:</b> rebase 像团队主文件更新了,你把自己的页面搬到最新版主文件里;stash 像把没完成的 frame 先放进隐藏页,不让它混进当前交付。</div>
 
-  <h3>Rebase:让分支跟上最新 main</h3>
-  <p>常用在你自己的需求分支上。它会把 main 上别人新加的提交先放在前面,再把你的提交接到后面。这样 PR 看起来像"从最新版 main 开始改的"。</p>
-  <div class="urlbox">git switch main<br>git pull<br>git switch feature/login-empty-state<br>git rebase main</div>
-  <div class="tip">💡 如果 rebase 过程中出现冲突,解决完每个冲突后用 <span class="kbd">git rebase --continue</span> 继续。想放弃这次 rebase,用 <span class="kbd">git rebase --abort</span> 回到开始前。</div>
-  <div class="warn">⚠️ 已经推到共享远端、并且别人也在用的分支,不要随便 rebase。自己一个人用的 feature 分支最适合 rebase。</div>
+  <h3>Rebase:提 PR 前,把草稿放到最新底稿上</h3>
+  <p>你会看到的结果:PR 里还是你的那些设计改动,但它们会接在最新 main 后面。审核时少一些"你这分支太旧了"的噪音。</p>
+  <div class="urlbox">1. 先确认手上没有未保存的半成品<br>2. 更新 main 到最新版<br>3. 回到你的需求分支<br>4. 把当前分支 rebase 到 main</div>
+  <div class="tip">💡 rebase 中如果撞到冲突,不要急着点来点去。让 AI 先告诉你"哪两份设计/文案撞了",你确认保留哪边后,再让它继续。</div>
+  <div class="warn">⚠️ rebase 适合你自己一个人用的 feature 分支。如果这个分支已经有同事一起改,先问团队,不要自己重排它。</div>
 
   <div class="pcard">
     <div class="phead"><span class="tag">同步最新 main</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
-    <div class="pbody"><span class="lock">我在当前需求分支上,准备提 PR。请先检查状态,如果没有未提交改动,帮我把 main 拉到最新,然后把当前分支 rebase 到最新 main 上。过程中如果有冲突,先解释给我听,不要直接乱改。</span></div>
+    <div class="pbody"><span class="lock">我准备提 PR 了。请先确认我手上没有未保存的半成品,然后把当前分支放到最新 main 后面(rebase)。如果有冲突,先用大白话告诉我是哪两处内容撞了,我确认后你再处理。</span></div>
   </div>
 
   <div class="pcard">
     <div class="phead"><span class="tag">继续 rebase</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
-    <div class="pbody"><span class="lock">我已经按方案解决完 rebase 冲突了。请帮我检查冲突文件是否处理干净,然后继续这次 rebase。完成后告诉我当前分支状态。</span></div>
+    <div class="pbody"><span class="lock">我已经决定好冲突保留哪一版了。请按刚才确认的方案处理,继续 rebase,完成后告诉我:现在能不能安全提 PR。</span></div>
   </div>
 
-  <h3>Stash:临时保存未完成改动</h3>
-  <p>当你改到一半,但还不适合 commit,又必须切去别的分支时,用 stash。它不会帮你上传,只是保存在你电脑本地。</p>
-  <div class="urlbox">git stash push -m "login page half done"<br>git switch main<br>git pull<br>git switch hotfix/button-copy<br>...处理紧急任务...<br>git switch feature/login-empty-state<br>git stash pop</div>
-  <div class="tip">💡 <span class="kbd">stash pop</span> 是"拿回来并从抽屉里删除";<span class="kbd">stash apply</span> 是"拿回来但抽屉里还保留一份"。</div>
+  <h3>Stash:半成品先收起来,别混进别的事</h3>
+  <p>你会看到的结果:工作区变干净,可以安心切分支、拉最新代码、修紧急问题。回来后再把半成品恢复出来继续做。</p>
+  <div class="urlbox">1. stash:把当前半成品收起来<br>2. 切去处理别的任务<br>3. 回到原来的需求分支<br>4. stash pop:把半成品拿回来</div>
+  <div class="tip">💡 <span class="kbd">stash pop</span> 像"拿出来并清空抽屉";<span class="kbd">stash apply</span> 像"拿出来一份,抽屉里还留备份"。</div>
 
   <div class="pcard">
     <div class="phead"><span class="tag">临时收起改动</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
-    <div class="pbody"><span class="lock">我现在有一些没做完、还不适合 commit 的改动。请帮我先查看当前状态,然后用 git stash 临时保存,备注写:</span><span class="fill" contenteditable="true">登录页草稿,稍后继续</span><span class="lock">。保存后告诉我工作区是否干净。</span></div>
+    <div class="pbody"><span class="lock">我现在有半成品,还不适合提交。请先帮我看一眼哪些文件改了,然后用 stash 收起来,备注写:</span><span class="fill" contenteditable="true">登录页草稿,稍后继续</span><span class="lock">。收好后告诉我现在能不能安全切分支。</span></div>
   </div>
 
   <div class="pcard">
     <div class="phead"><span class="tag">恢复 stash</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
-    <div class="pbody"><span class="lock">我想恢复刚才 stash 的改动。请先列出 stash 列表,帮我确认要恢复哪一条,然后用安全方式恢复到当前分支。如果恢复时有冲突,先解释冲突原因。</span></div>
+    <div class="pbody"><span class="lock">我想继续刚才收起来的半成品。请先列出 stash 列表,帮我确认哪一条是刚才那份,再恢复到当前分支。如果恢复时撞到别人的改动,先解释给我听。</span></div>
   </div>
 
-  <h3>实际使用案例:设计稿改到一半,突然要修线上文案</h3>
+  <h3>实际使用案例:引导页改到一半,突然要修线上文案</h3>
   <div class="wstep">
     <div class="badge-n">1</div>
-    <h4>你正在做一个未完成需求</h4>
-    <p>你在 <span class="kbd">feature/onboarding-redesign</span> 分支改新版引导页,文件改了一半,还没到能 commit 的程度。</p>
+    <h4>先把半成品收起来</h4>
+    <p>你正在改新版 onboarding,状态还很乱:有些文案没定,有些 layout 只是试验。这个时候不适合 commit,因为它还不是一个能给别人看的版本。</p>
     <div class="pcard">
       <div class="phead"><span class="tag">保存现场</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
-      <div class="pbody"><span class="lock">我正在做 onboarding redesign,但现在要先切去修一个紧急问题。请帮我把当前未提交改动 stash 起来,备注写:</span><span class="fill" contenteditable="true">onboarding redesign 半成品</span><span class="lock">。</span></div>
+      <div class="pbody"><span class="lock">我正在做 onboarding redesign,但现在要先切去修一个紧急问题。请把当前半成品 stash 起来,备注写:</span><span class="fill" contenteditable="true">onboarding redesign 半成品</span><span class="lock">。收好后告诉我工作区是否干净。</span></div>
     </div>
   </div>
 
   <div class="wstep">
     <div class="badge-n">2</div>
-    <h4>切到最新 main,修紧急文案</h4>
-    <p>线上登录按钮文案有错。你先基于最新 main 开一个小分支修它,避免把半成品一起带进去。</p>
-    <div class="urlbox">git switch main<br>git pull<br>git switch -c hotfix/login-button-copy</div>
+    <h4>去修那个小而急的问题</h4>
+    <p>线上登录按钮文案写错了。你现在从最新 main 开一个很小的 hotfix 分支,只改这个文案,不要把 onboarding 半成品混进去。</p>
+    <div class="urlbox">目标:只修登录按钮文案<br>分支:hotfix/login-button-copy<br>结果:一个干净的小 PR</div>
     <div class="pcard">
       <div class="phead"><span class="tag">修紧急问题</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
-      <div class="pbody"><span class="lock">请从最新 main 开一个热修分支 </span><span class="fill" contenteditable="true">hotfix/login-button-copy</span><span class="lock">,把登录按钮文案从 </span><span class="fill" contenteditable="true">Sign</span><span class="lock"> 改成 </span><span class="fill" contenteditable="true">Sign in</span><span class="lock">,然后 commit 并 push,准备开 PR。</span></div>
+      <div class="pbody"><span class="lock">请从最新 main 开一个小分支 </span><span class="fill" contenteditable="true">hotfix/login-button-copy</span><span class="lock">,只把登录按钮文案从 </span><span class="fill" contenteditable="true">Sign</span><span class="lock"> 改成 </span><span class="fill" contenteditable="true">Sign in</span><span class="lock">。改完帮我提交、上传,并准备一个很短的 PR 描述。</span></div>
     </div>
   </div>
 
   <div class="wstep">
     <div class="badge-n">3</div>
-    <h4>回到原需求,恢复半成品</h4>
-    <p>紧急 PR 合并后,你回到原来的设计分支,把刚才收起来的半成品拿回来。</p>
-    <div class="urlbox">git switch feature/onboarding-redesign<br>git stash list<br>git stash pop</div>
+    <h4>回来继续原来的设计需求</h4>
+    <p>紧急 PR 合并后,你回到 onboarding 分支,从 stash 里把刚才那份半成品拿回来。你看到的结果应该是:刚才没做完的页面又回来了。</p>
+    <div class="urlbox">回到 feature/onboarding-redesign<br>找到刚才那条 stash<br>恢复它,继续做</div>
   </div>
 
   <div class="wstep">
     <div class="badge-n">4</div>
-    <h4>提 PR 前 rebase 一下</h4>
-    <p>因为 main 刚刚多了那个热修提交,你的设计分支已经落后了。提 PR 前 rebase 到最新 main,让审核时只看到你的设计改动。</p>
+    <h4>提 PR 前,把它放到最新版 main 后面</h4>
+    <p>现在 main 里已经有刚才那个文案修复。你的 onboarding 分支提 PR 前做一次 rebase,等于告诉审核的人:"请基于最新版主文件看我的设计改动。"</p>
     <div class="pcard">
       <div class="phead"><span class="tag">提 PR 前整理</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
-      <div class="pbody"><span class="lock">我的 </span><span class="fill" contenteditable="true">feature/onboarding-redesign</span><span class="lock"> 分支准备提 PR 了。请帮我先确认没有未提交改动,再把它 rebase 到最新 main。完成后 push 当前分支;如果需要 force push,请先解释为什么需要。</span></div>
+      <div class="pbody"><span class="lock">我的 </span><span class="fill" contenteditable="true">feature/onboarding-redesign</span><span class="lock"> 分支准备提 PR 了。请先确认没有半成品没保存,再把它 rebase 到最新 main。完成后告诉我 PR 里会展示哪些改动;如果上传时需要覆盖我自己的远端分支,先解释原因。</span></div>
     </div>
   </div>
 </section>

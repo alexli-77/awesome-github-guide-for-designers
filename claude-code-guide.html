@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code 使用指南 · 给设计师的图解说明</title>
+<style>
+  :root{
+    --ink:#1a1a2e; --muted:#6b7280; --line:#e5e7eb; --bg:#fafafa;
+    --main:#7c3aed; --feat:#0ea5e9; --pr:#f59e0b; --local:#10b981;
+    --issue:#ef4444; --soft:#f3f4f6; --card:#ffffff; --code:#0f172a;
+    --radius:16px; --sidebar:280px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.7; -webkit-font-smoothing:antialiased;
+  }
+  header.hero{
+    background:linear-gradient(135deg,#7c3aed 0%,#0ea5e9 100%);
+    color:#fff; padding:56px 24px 60px; text-align:center;
+  }
+  header.hero h1{font-size:38px; margin:0 0 12px; letter-spacing:-1px}
+  header.hero p{font-size:17px; opacity:.92; margin:0 auto; max-width:620px}
+  .badge{display:inline-block; background:rgba(255,255,255,.22); padding:6px 16px;
+    border-radius:999px; font-size:14px; margin-bottom:18px; backdrop-filter:blur(8px)}
+  .crosslink{margin:16px 0 0; font-size:14px}
+  .crosslink a{color:#fff; text-decoration:underline}
+
+  .layout{display:flex; align-items:flex-start; max-width:1240px; margin:0 auto}
+  nav.toc{
+    width:var(--sidebar); flex-shrink:0; position:sticky; top:0; align-self:flex-start;
+    height:100vh; overflow-y:auto; padding:32px 22px; border-right:1px solid var(--line);
+    background:var(--card);
+  }
+  nav.toc h2{margin:0 0 12px; font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:1px}
+  nav.toc h2:not(:first-child){margin-top:26px}
+  nav.toc ol{margin:0; padding:0; list-style:none; counter-reset:c}
+  nav.toc li{counter-increment:c; margin-bottom:6px}
+  nav.toc a{display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px;
+    color:var(--ink); text-decoration:none; font-weight:500; font-size:15px; transition:.15s}
+  nav.toc ol.num a::before{content:counter(c); background:var(--soft); color:var(--main); width:26px; height:26px;
+    border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0}
+  nav.toc a:hover{background:var(--soft)}
+  nav.toc a.active{background:#f5f3ff; color:var(--main)}
+  nav.toc ol.num a.active::before{background:var(--main); color:#fff}
+  nav.toc a.feature{background:linear-gradient(135deg,#7c3aed,#0ea5e9); color:#fff; font-weight:600}
+  nav.toc a.feature:hover{opacity:.92}
+  nav.toc a.feature.active{background:linear-gradient(135deg,#7c3aed,#0ea5e9); color:#fff}
+
+  main.content{flex:1; min-width:0; padding:44px 48px 120px; max-width:880px}
+
+  section{margin-bottom:72px; scroll-margin-top:24px}
+  h2.sec{font-size:27px; margin:0 0 8px; display:flex; align-items:center; gap:14px}
+  h2.sec .n{background:var(--main); color:#fff; width:40px; height:40px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0}
+  .lead{color:var(--muted); font-size:17px; margin:0 0 28px; padding-left:54px}
+  h3{font-size:20px; margin:36px 0 14px}
+  h4{font-size:16px}
+  p{margin:0 0 16px}
+  .fig{background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:28px; margin:24px 0; overflow-x:auto; text-align:center}
+  .fig svg{max-width:100%; height:auto}
+  .fig .cap{color:var(--muted); font-size:14px; margin-top:14px; text-align:center}
+  .analogy{background:linear-gradient(135deg,#fef3c7,#fde68a); border-radius:14px;
+    padding:18px 22px; margin:20px 0; font-size:15px}
+  .analogy b{color:#92400e}
+
+  /* ---- prompt cards: only highlighted parts editable ---- */
+  .pcard{background:var(--card); border:1px solid var(--line); border-radius:14px;
+    margin:18px 0; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .phead{display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--soft); border-bottom:1px solid var(--line)}
+  .phead .tag{background:var(--feat); color:#fff; font-size:13px; padding:4px 12px; border-radius:999px; font-weight:600}
+  .phead .tag.bad{background:var(--issue)}
+  .phead .tag.good{background:var(--local)}
+  .phead .copy{margin-left:auto; background:var(--main); color:#fff; border:none; cursor:pointer;
+    font-size:13px; font-weight:600; padding:7px 16px; border-radius:8px; font-family:inherit; transition:.15s; white-space:nowrap}
+  .phead .copy:hover{background:#6d28d9}
+  .phead .copy.done{background:var(--local)}
+  .pbody{padding:8px 16px 16px; font-size:15px; line-height:2}
+  .pbody .lock{color:var(--ink)}
+  .fill{background:#fff3cd; border:1px dashed var(--pr); border-radius:6px; padding:1px 8px; margin:0 2px;
+    color:#92400e; font-weight:500; outline:none; cursor:text; display:inline-block; min-width:40px; transition:.15s}
+  .fill:hover{background:#ffe9a6}
+  .fill:focus{background:#fff; border-style:solid; border-color:var(--feat); box-shadow:0 0 0 3px rgba(14,165,233,.15)}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin:24px 0}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px}
+  .card h4{margin:0 0 8px; font-size:16px; display:flex; align-items:center; gap:8px}
+  .card p{font-size:14px; color:var(--muted); margin:0}
+  table{width:100%; border-collapse:collapse; margin:24px 0; background:var(--card);
+    border-radius:14px; overflow:hidden; border:1px solid var(--line); font-size:15px}
+  th,td{padding:14px 16px; text-align:left; border-bottom:1px solid var(--line)}
+  th{background:var(--soft); font-weight:600}
+  tr:last-child td{border-bottom:none}
+  .dot{width:12px; height:12px; border-radius:50%; display:inline-block; flex-shrink:0}
+  .tip{border-left:4px solid var(--feat); background:#f0f9ff; padding:14px 18px; border-radius:0 12px 12px 0; margin:18px 0; font-size:15px}
+  .warn{border-left:4px solid var(--issue); background:#fef2f2; padding:14px 18px; border-radius:0 12px 12px 0; margin:18px 0; font-size:15px}
+  .step{display:flex; gap:16px; margin:18px 0; align-items:flex-start}
+  .step .num{background:var(--feat); color:#fff; width:30px; height:30px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0; font-size:14px}
+
+  /* walkthrough step block */
+  .wstep{background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:24px 26px; margin:22px 0; position:relative}
+  .wstep .badge-n{position:absolute; top:-14px; left:24px; background:var(--main); color:#fff;
+    width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:15px; box-shadow:0 2px 8px rgba(124,58,237,.4)}
+  .wstep h4{margin:6px 0 12px; font-size:18px}
+  .kbd{background:#0f172a; color:#e2e8f0; padding:2px 9px; border-radius:6px; font-family:"SF Mono",Menlo,Consolas,monospace; font-size:13px}
+  .urlbox{background:#0f172a; color:#7dd3fc; padding:10px 14px; border-radius:8px; font-family:"SF Mono",Menlo,Consolas,monospace; font-size:13px; word-break:break-all; margin:10px 0}
+
+  footer{text-align:center; color:var(--muted); font-size:14px; padding:40px 0; border-top:1px solid var(--line)}
+  .toast{position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:#fff; padding:12px 22px; border-radius:10px; font-size:14px;
+    opacity:0; pointer-events:none; transition:.25s; z-index:99}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+  @media(max-width:880px){
+    nav.toc{position:static; width:100%; height:auto; border-right:none; border-bottom:1px solid var(--line)}
+    .layout{flex-direction:column}
+    main.content{padding:32px 22px 100px}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="badge">🤖 专为设计师准备 · 看图就懂</div>
+  <h1>Claude Code 使用指南</h1>
+  <p>Claude Code 不是"自动改代码的黑箱",它是一个会自己找资料、动手做、再检查一遍的助手。这一页帮你搞懂它内部怎么转,以及怎么跟它说话效果最好。</p>
+  <p class="crosslink">🧭 <a href="index.html">全部指南</a> · 🎨 <a href="github-guide.html">GitHub 入门</a> · ⚡ <a href="codex-guide.html">Codex</a></p>
+</header>
+
+<div class="layout">
+
+<nav class="toc">
+  <h2>核心概念</h2>
+  <ol class="num">
+    <li><a href="#overview">代理循环:它怎么"转"</a></li>
+    <li><a href="#s1">模型与工具:谁在想,谁在做</a></li>
+    <li><a href="#s2">Claude 能看到什么</a></li>
+    <li><a href="#s3">执行环境与使用界面</a></li>
+    <li><a href="#s4">会话与上下文窗口</a></li>
+    <li><a href="#s5">安全机制:撤销与权限</a></li>
+  </ol>
+  <h2>实战</h2>
+  <ol>
+    <li><a href="#s6" class="feature">💬 怎样把话说好</a></li>
+    <li><a href="#cheat">⚡ 一页速查表</a></li>
+  </ol>
+</nav>
+
+<main class="content">
+
+<!-- ============ 代理循环 ============ -->
+<section id="overview">
+  <h2 class="sec"><span class="n">★</span>代理循环:它怎么"转"</h2>
+  <p class="lead">你给一个任务,Claude 不是"想一下直接吐结果",而是像一个真的在干活的人一样,不断"查资料 → 动手 → 检查"。</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 780 300" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,sans-serif">
+      <rect x="30" y="30" width="220" height="90" rx="14" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="2"/>
+      <text x="140" y="65" text-anchor="middle" font-size="14" fill="#075985" font-weight="700">🔍 收集上下文</text>
+      <text x="140" y="88" text-anchor="middle" font-size="12" fill="#6b7280">读文件、搜索、理解代码</text>
+      <rect x="530" y="30" width="220" height="90" rx="14" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+      <text x="640" y="65" text-anchor="middle" font-size="14" fill="#5b21b6" font-weight="700">✏️ 采取行动</text>
+      <text x="640" y="88" text-anchor="middle" font-size="12" fill="#6b7280">改代码、跑命令</text>
+      <rect x="280" y="200" width="220" height="90" rx="14" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+      <text x="390" y="235" text-anchor="middle" font-size="14" fill="#065f46" font-weight="700">✅ 验证结果</text>
+      <text x="390" y="258" text-anchor="middle" font-size="12" fill="#6b7280">跑测试、检查输出</text>
+      <defs><marker id="ar2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#475569"/></marker></defs>
+      <line x1="250" y1="75" x2="525" y2="75" stroke="#475569" stroke-width="2" marker-end="url(#ar2)"/>
+      <text x="390" y="65" text-anchor="middle" font-size="11" fill="#475569">根据发现决定怎么做</text>
+      <line x1="610" y1="120" x2="440" y2="205" stroke="#475569" stroke-width="2" marker-end="url(#ar2)"/>
+      <text x="565" y="175" text-anchor="middle" font-size="11" fill="#475569">做完自己查一遍</text>
+      <line x1="325" y1="200" x2="185" y2="122" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5,4" marker-end="url(#ar2)"/>
+      <text x="205" y="175" text-anchor="middle" font-size="11" fill="#64748b">没通过就再回去查</text>
+      <text x="390" y="150" text-anchor="middle" font-size="12" fill="#94a3b8">🔁 循环往复,直到任务完成</text>
+    </svg>
+    <div class="cap">三个阶段会反复交织:一个问答可能只需要"收集上下文";一次修 bug 会把三步来回跑好几轮;一次重构可能光"验证"就要跑很多遍。</div>
+  </div>
+
+  <div class="tip">💡 <b>您全程都在这个循环里:</b>按一次 <span class="kbd">Esc</span> 立即打断当前操作,工具调用会被取消,Claude 停下等你说话;直接打字发新指令并回车,不用等它说完 —— Claude 会在手头这个操作做完后立刻读到,并调整方向。</div>
+
+  <div class="analogy">🎨 <b>Figma 类比:</b> 有点像你在改一版设计稿:先打开参考图和现有组件看清楚现状(收集上下文),再动手改(采取行动),改完对齐一下间距、检查一遍交互(验证结果)。你随时可以在旁边插一句"等等,先别改这块",对方会立刻停下来听你说。</div>
+
+  <p>驱动这个循环的是两样东西:<b>模型</b>负责"想"(推理该做什么),<b>工具</b>负责"做"(真的去改文件、跑命令)。Claude Code 本身是包在模型外面的一层<b>代理框架</b> —— 它负责准备工具、管理上下文、提供一个能真正执行动作的环境,把一个"语言模型"变成一个"能写代码的代理"。</p>
+</section>
+
+<!-- ============ 1. 模型与工具 ============ -->
+<section id="s1">
+  <h2 class="sec"><span class="n">1</span>模型与工具:谁在想,谁在做</h2>
+  <p class="lead">模型负责推理,工具负责动手。每用一次工具,Claude 都会拿到新信息,再决定下一步 —— 这就是"代理循环"落到实处的样子。</p>
+
+  <h3>模型:负责"想"</h3>
+  <p>Claude 能读懂任何语言写的代码,理解模块之间怎么连接,并想清楚要改什么才能达到你的目标。复杂任务会被拆成一步步来,边做边根据学到的信息调整。日常任务用 <b>Sonnet</b> 就够快够好;涉及复杂架构决策时可以切到 <b>Opus</b>,推理更强。会话中用 <span class="kbd">/model</span> 随时切换。</p>
+
+  <h3>工具:负责"做"</h3>
+  <p>没有工具,Claude 只能用文字回你话;有了工具,它才能真的读文件、改文件、跑命令、查网络、连外部服务。内置工具大致分五类:</p>
+
+  <table>
+    <tr><th>类别</th><th>Claude 能做什么</th></tr>
+    <tr><td>📄 文件操作</td><td>读文件、改代码、新建文件、重命名和重新整理目录结构</td></tr>
+    <tr><td>🔎 搜索</td><td>按文件名找、按内容用正则搜、探索整个代码库</td></tr>
+    <tr><td>⚙️ 执行</td><td>跑 shell 命令、启动服务、跑测试、操作 git</td></tr>
+    <tr><td>🌐 网络</td><td>搜网页、抓文档、查报错信息</td></tr>
+    <tr><td>🧠 代码智能</td><td>改完看类型报错、跳转到定义、查引用(需要装代码智能插件)</td></tr>
+  </table>
+
+  <div class="tip">💡 除了这些基础工具,Claude 还能用 <b>skills</b> 扩展知道的东西、用 <b>MCP</b> 连外部服务、用 <b>hooks</b> 自动化流程、用 <b>subagents</b> 把任务外包出去。这些都是叠加在"核心循环"之上的能力,不属于内置工具本身。</div>
+
+  <h3>一个真实例子:"修复失败的测试"</h3>
+  <p>当你说"修复失败的测试"时,Claude 大致会这样跑:</p>
+  <div class="step"><span class="num">1</span><div>跑一遍测试套件,看哪里失败了</div></div>
+  <div class="step"><span class="num">2</span><div>读报错输出</div></div>
+  <div class="step"><span class="num">3</span><div>搜索相关的源文件</div></div>
+  <div class="step"><span class="num">4</span><div>读这些文件,理解代码逻辑</div></div>
+  <div class="step"><span class="num">5</span><div>改文件,修问题</div></div>
+  <div class="step"><span class="num">6</span><div>再跑一次测试,确认真的修好了</div></div>
+  <div class="analogy">🎨 <b>Figma 类比:</b> 工具就像 Figma 里的选区工具、文字工具、评论区 —— 每次用一次都会给你新反馈(选中了什么、字对不对齐、同事回复了什么),这些反馈决定你下一步点哪里。Claude 用工具的逻辑是一样的。</div>
+</section>
+
+<!-- ============ 2. Claude 能看到什么 ============ -->
+<section id="s2">
+  <h2 class="sec"><span class="n">2</span>Claude 能看到什么</h2>
+  <p class="lead">在项目目录里跑 <span class="kbd">claude</span> 时,它能访问这些东西 —— 这也是它跟"只看当前这一个文件"的内联代码助手最大的区别。</p>
+
+  <div class="grid">
+    <div class="card"><h4>📁 你的项目</h4><p>目录和子目录里的所有文件,以及你额外授权过的其他位置的文件。</p></div>
+    <div class="card"><h4>💻 你的终端</h4><p>你能跑的任何命令:构建工具、git、包管理器、系统工具、脚本。你能在命令行做的事,它都能做。</p></div>
+    <div class="card"><h4>🌿 你的 git 状态</h4><p>当前分支、还没提交的改动、最近的提交历史。</p></div>
+    <div class="card"><h4>📝 CLAUDE.md</h4><p>你写的一份 markdown 说明书,放项目约定、规范,每次会话都会自动读。</p></div>
+    <div class="card"><h4>🧠 自动内存</h4><p>Claude 干活时自动记下的项目模式和你的偏好,会写进 MEMORY.md,每次会话开头自动加载前 200 行。</p></div>
+    <div class="card"><h4>🔌 你配置的扩展</h4><p>连外部服务的 MCP、封装工作流的 skills、能分工的 subagents、能操作浏览器的 Claude in Chrome。</p></div>
+  </div>
+
+  <p>因为看得到整个项目,Claude 能跨文件干活。你说"修复登录报错的 bug",它会自己去搜相关文件、读懂上下文、跨多个文件做协调修改、跑测试验证,如果你要求还会直接帮你 commit。</p>
+
+  <div class="analogy">🎨 <b>Figma 类比:</b> 不是只看你正打开的这一个 frame,而是能翻遍整个文件的所有页面、组件库、你写在描述里的设计规范,甚至知道这个文件目前"谁改了哪块还没提交评审"。</div>
+</section>
+
+<!-- ============ 3. 执行环境与界面 ============ -->
+<section id="s3">
+  <h2 class="sec"><span class="n">3</span>执行环境与使用界面</h2>
+  <p class="lead">循环、工具、能访问的东西在哪里用都一样,变的只是"代码在哪跑"和"你用什么界面跟它说话"。</p>
+
+  <table>
+    <tr><th>环境</th><th>代码在哪跑</th><th>适合场景</th></tr>
+    <tr><td><span class="dot" style="background:var(--local)"></span> 本地</td><td>你自己的电脑</td><td>默认方式,能完整访问你的文件、工具和环境</td></tr>
+    <tr><td><span class="dot" style="background:var(--feat)"></span> 云</td><td>Anthropic 托管的虚拟机</td><td>把任务卸下去跑、处理本地没有的仓库</td></tr>
+    <tr><td><span class="dot" style="background:var(--pr)"></span> 远程控制</td><td>还是你的电脑,只是从浏览器远程操作</td><td>想用网页界面,但代码还是留在本地</td></tr>
+  </table>
+
+  <div class="analogy">🎨 <b>Figma 类比:</b> 本地 = 在自己电脑上开着 Figma 文件改;云 = 让同事在 Figma 云端帮你跑一个很耗时的批量操作,不占你电脑资源;远程控制 = 用手机浏览器远程操作你电脑上正开着的那份 Figma。</div>
+
+  <p>访问入口有很多种:终端、桌面应用、IDE 插件(VS Code / JetBrains)、网页版 claude.ai/code、远程控制、Slack、CI/CD 流水线。界面只是决定你怎么看到、怎么跟它对话,底层那套"代理循环"是同一套。</p>
+</section>
+
+<!-- ============ 4. 会话与上下文窗口 ============ -->
+<section id="s4">
+  <h2 class="sec"><span class="n">4</span>会话与上下文窗口</h2>
+  <p class="lead">你干活的时候,整个对话会被实时存到本地。这一节讲会话怎么续、怎么分叉,以及"记性"用完了会发生什么。</p>
+
+  <h3>会话是独立的</h3>
+  <p>每条消息、每次工具调用、每个结果都被写进 <span class="kbd">~/.claude/projects/</span> 下的纯文本文件,这也是"撤销""恢复""分叉"会话能实现的原因。<b>但每个新会话都是从零开始的新上下文</b> —— 不会自动带上之前会话的聊天记录。跨会话的"记性"靠自动内存,你自己要长期生效的规则要写进 CLAUDE.md。</p>
+
+  <div class="urlbox">恢复(resume / --continue)→ 沿用同一个会话 ID,新消息接着往后写<br>分叉(fork / --fork-session / /branch)→ 复制出一份历史,开一个新会话 ID,原会话不受影响</div>
+  <div class="analogy">🎨 <b>Figma 类比:</b> 恢复会话像"继续编辑同一份 Figma 文件";分叉像"另存为一个副本接着改",原文件保持不动,你可以放心在副本里做实验性改动。</div>
+
+  <div class="tip">💡 会话跟"你当前所在的目录"绑定。切分支时,Claude 看到的文件会跟着变,但聊天记录不会丢 —— 它还记得之前跟你聊过什么。想同时跑多个并行会话,可以配合 git worktree,给每个分支一个独立目录。</div>
+
+  <h3>上下文窗口:会越用越满</h3>
+  <p>上下文窗口里装着:对话历史、文件内容、命令输出、CLAUDE.md、自动内存、已加载的 skills、系统说明。用着用着会被填满,Claude 会自动"压缩":先清掉比较旧的工具输出,如果还不够再总结更早的对话。</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,sans-serif">
+      <text x="40" y="24" font-size="13" fill="#6b7280">用着用着,上下文窗口被填满:</text>
+      <rect x="40" y="35" width="100" height="45" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+      <text x="90" y="62" text-anchor="middle" font-size="11" fill="#374151">CLAUDE.md</text>
+      <rect x="140" y="35" width="100" height="45" fill="#d1fae5" stroke="#10b981" stroke-width="1.5"/>
+      <text x="190" y="62" text-anchor="middle" font-size="11" fill="#065f46">自动内存</text>
+      <rect x="240" y="35" width="480" height="45" fill="#dbeafe" stroke="#0ea5e9" stroke-width="1.5"/>
+      <text x="480" y="62" text-anchor="middle" font-size="11" fill="#075985">对话历史 · 文件内容 · 工具输出(持续增长)</text>
+      <defs><marker id="ar3" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#475569"/></marker></defs>
+      <line x1="380" y1="90" x2="380" y2="115" stroke="#475569" stroke-width="2" marker-end="url(#ar3)"/>
+      <text x="480" y="105" text-anchor="middle" font-size="11" fill="#475569">快满了 → 自动压缩</text>
+      <text x="40" y="140" font-size="13" fill="#6b7280">压缩后:先清旧的工具输出,不够再总结更早的对话</text>
+      <rect x="40" y="150" width="100" height="40" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+      <text x="90" y="175" text-anchor="middle" font-size="11" fill="#374151">CLAUDE.md</text>
+      <rect x="140" y="150" width="100" height="40" fill="#d1fae5" stroke="#10b981" stroke-width="1.5"/>
+      <text x="190" y="175" text-anchor="middle" font-size="11" fill="#065f46">自动内存</text>
+      <rect x="240" y="150" width="220" height="40" fill="#dbeafe" stroke="#0ea5e9" stroke-width="1.5"/>
+      <text x="350" y="175" text-anchor="middle" font-size="11" fill="#075985">精简后的对话摘要</text>
+      <rect x="470" y="150" width="250" height="40" fill="none" stroke="#94a3b8" stroke-dasharray="4,3" stroke-width="1.5"/>
+      <text x="595" y="175" text-anchor="middle" font-size="11" fill="#94a3b8">腾出来的空间</text>
+    </svg>
+    <div class="cap">你的原始请求和关键代码片段会被保留;对话早期的详细说明有可能在压缩里丢掉 —— 所以长期要生效的规则,别指望"聊天记录里说过",写进 CLAUDE.md。</div>
+  </div>
+
+  <div class="tip">💡 想看当前占用情况用 <span class="kbd">/context</span>;想指定压缩时重点保留什么,可以带方向跑 <span class="kbd">/compact focus on the API changes</span>,或者直接在 CLAUDE.md 里写一节 "Compact Instructions"。</div>
+
+  <h3>用 skills 和 subagents 少占空间</h3>
+  <p><b>Skills</b> 是按需加载的:会话开始时 Claude 只看到 skill 的一句话描述,真正用到时才把完整内容加载进来。<b>Subagents</b> 更彻底 —— 它们在完全独立的上下文里干活,不会占用你主对话的空间,做完只给你一份摘要。</p>
+  <div class="analogy">🎨 <b>Figma 类比:</b> Skill 像是收在组件库里但没展开的组件说明,要用到才展开细节;Subagent 像是把一部分设计工作外包给另一个人,在他自己的文件里完成,做完只给你一份效果说明,不会把他的草稿也塞进你的文件里。</div>
+</section>
+
+<!-- ============ 5. 安全机制 ============ -->
+<section id="s5">
+  <h2 class="sec"><span class="n">5</span>安全机制:撤销与权限</h2>
+  <p class="lead">两道保险:出错了能撤回(checkpoint),以及提前定好哪些操作要问你、哪些不用问(权限模式)。</p>
+
+  <h3>Checkpoint:每次改文件都能撤销</h3>
+  <p>Claude 动手改任何文件之前,都会先给当前内容拍一张"快照"。改坏了,按两下 <span class="kbd">Esc</span> 就能回到改之前的状态,或者直接叫它撤销。</p>
+  <div class="warn">⚠️ Checkpoint 只管"文件改动",跟 git 无关,也不会话与话之间共享。真正有外部副作用的操作(改数据库、调 API、上线部署)是没法拍快照撤销的 —— 所以 Claude 跑这类命令前会先问你。</div>
+
+  <h3>权限模式:哪些事要先问你</h3>
+  <p>按 <span class="kbd">Shift+Tab</span> 在四种模式间切换:</p>
+  <div class="fig">
+    <svg viewBox="0 0 780 170" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,sans-serif">
+      <rect x="10" y="30" width="175" height="80" rx="12" fill="#f3f4f6" stroke="#6b7280" stroke-width="2"/>
+      <text x="97" y="60" text-anchor="middle" font-size="13" fill="#374151" font-weight="700">Default</text>
+      <text x="97" y="80" text-anchor="middle" font-size="10.5" fill="#6b7280">改文件、跑命令前都问你</text>
+      <rect x="205" y="30" width="175" height="80" rx="12" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="2"/>
+      <text x="292" y="55" text-anchor="middle" font-size="13" fill="#075985" font-weight="700">Auto-accept</text>
+      <text x="292" y="72" text-anchor="middle" font-size="10.5" fill="#6b7280">改文件、常见文件命令</text>
+      <text x="292" y="87" text-anchor="middle" font-size="10.5" fill="#6b7280">不问,其它命令仍问</text>
+      <rect x="400" y="30" width="175" height="80" rx="12" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+      <text x="487" y="60" text-anchor="middle" font-size="13" fill="#5b21b6" font-weight="700">Plan Mode</text>
+      <text x="487" y="80" text-anchor="middle" font-size="10.5" fill="#6b7280">只探索、出计划,不改源文件</text>
+      <rect x="595" y="30" width="175" height="80" rx="12" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+      <text x="682" y="55" text-anchor="middle" font-size="13" fill="#065f46" font-weight="700">Auto mode</text>
+      <text x="682" y="72" text-anchor="middle" font-size="10.5" fill="#6b7280">后台自动判断安全性</text>
+      <text x="682" y="87" text-anchor="middle" font-size="10.5" fill="#6b7280">(研究预览阶段)</text>
+      <defs><marker id="ar4" markerWidth="9" markerHeight="9" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5 Z" fill="#475569"/></marker></defs>
+      <line x1="185" y1="70" x2="200" y2="70" stroke="#475569" stroke-width="2" marker-end="url(#ar4)"/>
+      <line x1="380" y1="70" x2="395" y2="70" stroke="#475569" stroke-width="2" marker-end="url(#ar4)"/>
+      <line x1="575" y1="70" x2="590" y2="70" stroke="#475569" stroke-width="2" marker-end="url(#ar4)"/>
+      <path d="M682,110 C682,150 97,150 97,110" stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#ar4)"/>
+      <text x="390" y="150" text-anchor="middle" font-size="11" fill="#94a3b8">⇥ Shift+Tab 循环切换</text>
+    </svg>
+    <div class="cap">四种模式管的是"要不要先问你";Plan Mode 里权限提示照样生效,只是它压根不会去动你的源文件。</div>
+  </div>
+
+  <div class="tip">💡 像 <span class="kbd">git status</span>、<span class="kbd">npm test</span> 这类你完全信得过的命令,可以在 <span class="kbd">.claude/settings.json</span> 里加进允许列表,以后就不用每次都问了。设置范围可以从整个组织一路细化到你个人。</div>
+</section>
+
+<!-- ============ 6. 怎样把话说好 ============ -->
+<section id="s6">
+  <h2 class="sec"><span class="n">💬</span>怎样把话说好</h2>
+  <p class="lead">这几条来自官方文档,是能实打实提高第一次成功率的说话方式。</p>
+
+  <div class="wstep">
+    <div class="badge-n">1</div>
+    <h4>这是一场对话,不用一次说对</h4>
+    <p>不需要憋一个"完美 prompt"。先说你想要的,不对就接着说,Claude 会在这句话上继续调整,不会推倒重来。</p>
+    <div class="pcard">
+      <div class="phead"><span class="tag">第一轮</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
+      <div class="pbody"><span class="lock">修复登录报错。</span></div>
+    </div>
+    <div class="pcard">
+      <div class="phead"><span class="tag">发现方向不对,第二轮直接纠正</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
+      <div class="pbody"><span class="lock">这不太对,问题出在会话处理那块,你再看看。</span></div>
+    </div>
+  </div>
+
+  <div class="wstep">
+    <div class="badge-n">2</div>
+    <h4>预先说清楚,越具体返工越少</h4>
+    <p>提到具体文件、说明约束条件、指出可以参考的现有写法,第一次就做对的概率会高很多。</p>
+    <div class="pcard">
+      <div class="phead"><span class="tag bad">太模糊</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
+      <div class="pbody"><span class="lock">结账流程坏了,帮我修一下。</span></div>
+    </div>
+    <div class="pcard">
+      <div class="phead"><span class="tag good">具体明确</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
+      <div class="pbody"><span class="lock">持卡已过期的用户走结账流程会报错。请检查 </span><span class="fill" contenteditable="true">src/payments/</span><span class="lock"> 里的问题,重点看令牌刷新那部分。先写一个能复现问题的失败测试,再动手修。</span></div>
+    </div>
+  </div>
+
+  <div class="wstep">
+    <div class="badge-n">3</div>
+    <h4>给它一个能自己核对的标准</h4>
+    <p>有测试用例、有预期效果的截图、有明确的输出定义,Claude 就能自己检查做得对不对,而不是全靠你事后挑错。</p>
+    <div class="pcard">
+      <div class="phead"><span class="tag">带验证标准的需求</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
+      <div class="pbody"><span class="lock">实现 </span><span class="fill" contenteditable="true">validateEmail</span><span class="lock"> 函数。测试用例:</span><span class="fill" contenteditable="true">'user@example.com' → true,'invalid' → false,'user@.com' → false</span><span class="lock">。写完跑一下测试。</span></div>
+    </div>
+    <div class="tip">💡 涉及视觉效果的需求,直接把设计稿截图贴给它,让它对着截图检查自己实现出来的效果对不对。</div>
+  </div>
+
+  <div class="wstep">
+    <div class="badge-n">4</div>
+    <h4>复杂问题,先探索再动手</h4>
+    <p>按两次 <span class="kbd">Shift+Tab</span> 进入 Plan Mode,让 Claude 先只看代码、不动文件,出一份计划给你看,你确认后再执行 —— 比直接让它冲进去改代码效果更好。</p>
+    <div class="pcard">
+      <div class="phead"><span class="tag">Plan Mode 先出方案</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
+      <div class="pbody"><span class="lock">读一下 </span><span class="fill" contenteditable="true">src/auth/</span><span class="lock">,搞清楚我们现在是怎么处理会话的。然后给加 </span><span class="fill" contenteditable="true">OAuth 支持</span><span class="lock"> 这件事出一份计划。</span></div>
+    </div>
+  </div>
+
+  <div class="wstep">
+    <div class="badge-n">5</div>
+    <h4>委派,而不是逐条下指令</h4>
+    <p>把它当成一个靠谱的同事:给背景和方向,细节交给它自己判断,不用手把手指定"读哪个文件、跑哪条命令"。</p>
+    <div class="pcard">
+      <div class="phead"><span class="tag">委派式描述</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
+      <div class="pbody"><span class="lock">持卡已过期的用户走结账流程会坏。相关代码在 </span><span class="fill" contenteditable="true">src/payments/</span><span class="lock">。你能查一下并修好吗?</span></div>
+    </div>
+  </div>
+
+  <div class="tip">💡 <b>不知道怎么用某个功能?直接问它。</b> 比如"我怎么配置 hooks?""CLAUDE.md 应该怎么写比较好?",Claude 会直接解释给你听。<span class="kbd">/init</span> 帮你搭 CLAUDE.md,<span class="kbd">/agents</span> 帮你配 subagent,<span class="kbd">/doctor</span> 排查安装问题。</div>
+</section>
+
+<section id="cheat">
+  <h2 class="sec"><span class="n">⚡</span>一页速查表</h2>
+  <p class="lead">贴在手边,忘了就看这张。</p>
+  <table>
+    <tr><th>想做的事</th><th>怎么操作</th></tr>
+    <tr><td>立刻打断当前操作</td><td><span class="kbd">Esc</span></td></tr>
+    <tr><td>撤销刚才的文件改动</td><td>连按两次 <span class="kbd">Esc</span>,或直接说"帮我撤销"</td></tr>
+    <tr><td>切换权限模式</td><td><span class="kbd">Shift+Tab</span> 循环:Default → Auto-accept → Plan Mode → Auto</td></tr>
+    <tr><td>只出计划不改代码</td><td>按两次 <span class="kbd">Shift+Tab</span> 进 Plan Mode</td></tr>
+    <tr><td>切换模型</td><td><span class="kbd">/model</span>,或启动时 <span class="kbd">claude --model &lt;name&gt;</span></td></tr>
+    <tr><td>看当前上下文占用</td><td><span class="kbd">/context</span></td></tr>
+    <tr><td>手动压缩并指定重点</td><td><span class="kbd">/compact focus on ...</span></td></tr>
+    <tr><td>接着上次的会话说</td><td><span class="kbd">claude --continue</span> / <span class="kbd">claude --resume</span></td></tr>
+    <tr><td>从当前会话开一条新分支</td><td><span class="kbd">/branch</span> 或 <span class="kbd">--fork-session</span></td></tr>
+    <tr><td>搭建/检查项目说明文件</td><td><span class="kbd">/init</span></td></tr>
+    <tr><td>配置自定义 subagent</td><td><span class="kbd">/agents</span></td></tr>
+    <tr><td>排查安装问题</td><td><span class="kbd">/doctor</span></td></tr>
+  </table>
+</section>
+
+<footer>
+  Claude Code 使用指南 · 为设计师而做 🤖 &nbsp;|&nbsp; 记住核心:把它当同事委派,而不是当命令行背指令。
+</footer>
+
+</main>
+</div>
+
+<div class="toast" id="toast">已复制 ✅</div>
+
+<script>
+function copyPrompt(btn){
+  var card = btn.closest('.pcard');
+  var body = card.querySelector('.pbody');
+  var text = (body.innerText || body.textContent).replace(/\s+/g,' ').trim();
+  var done = function(){
+    btn.textContent = '已复制 ✅'; btn.classList.add('done'); showToast();
+    setTimeout(function(){ btn.textContent='复制'; btn.classList.remove('done'); }, 1600);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done, function(){ legacy(text); done(); });
+  } else { legacy(text); done(); }
+}
+function legacy(text){
+  var t=document.createElement('textarea'); t.value=text; t.style.position='fixed'; t.style.opacity='0';
+  document.body.appendChild(t); t.select(); try{document.execCommand('copy');}catch(e){} document.body.removeChild(t);
+}
+var toastTimer;
+function showToast(){
+  var t=document.getElementById('toast'); t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.classList.remove('show'); }, 1500);
+}
+// keep editable fills on one line (no line breaks pasted)
+document.querySelectorAll('.fill').forEach(function(f){
+  f.addEventListener('keydown', function(e){ if(e.key==='Enter') e.preventDefault(); });
+  f.addEventListener('paste', function(e){
+    e.preventDefault();
+    var txt=(e.clipboardData||window.clipboardData).getData('text').replace(/\n/g,' ');
+    document.execCommand('insertText', false, txt);
+  });
+});
+// active TOC highlight
+var links=document.querySelectorAll('nav.toc a');
+var secs=Array.prototype.map.call(links,function(a){return document.querySelector(a.getAttribute('href'));});
+function onScroll(){
+  var pos=window.scrollY+120, idx=0;
+  secs.forEach(function(s,i){ if(s && s.offsetTop<=pos) idx=i; });
+  links.forEach(function(a,i){ a.classList.toggle('active', i===idx); });
+}
+window.addEventListener('scroll', onScroll); onScroll();
+</script>
+</body>
+</html>

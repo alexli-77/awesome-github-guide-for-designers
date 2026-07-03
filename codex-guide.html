@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Codex 使用指南 · 给设计师的图解说明</title>
+<style>
+  :root{
+    --ink:#1a1a2e; --muted:#6b7280; --line:#e5e7eb; --bg:#fafafa;
+    --main:#7c3aed; --feat:#0ea5e9; --pr:#f59e0b; --local:#10b981;
+    --issue:#ef4444; --soft:#f3f4f6; --card:#ffffff; --code:#0f172a;
+    --radius:16px; --sidebar:280px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.7; -webkit-font-smoothing:antialiased;
+  }
+  header.hero{
+    background:linear-gradient(135deg,#7c3aed 0%,#0ea5e9 100%);
+    color:#fff; padding:56px 24px 60px; text-align:center;
+  }
+  header.hero h1{font-size:38px; margin:0 0 12px; letter-spacing:-1px}
+  header.hero p{font-size:17px; opacity:.92; margin:0 auto; max-width:620px}
+  .badge{display:inline-block; background:rgba(255,255,255,.22); padding:6px 16px;
+    border-radius:999px; font-size:14px; margin-bottom:18px; backdrop-filter:blur(8px)}
+  .crosslink{margin:16px 0 0; font-size:14px}
+  .crosslink a{color:#fff; text-decoration:underline}
+
+  .layout{display:flex; align-items:flex-start; max-width:1240px; margin:0 auto}
+  nav.toc{
+    width:var(--sidebar); flex-shrink:0; position:sticky; top:0; align-self:flex-start;
+    height:100vh; overflow-y:auto; padding:32px 22px; border-right:1px solid var(--line);
+    background:var(--card);
+  }
+  nav.toc h2{margin:0 0 12px; font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:1px}
+  nav.toc h2:not(:first-child){margin-top:26px}
+  nav.toc ol{margin:0; padding:0; list-style:none; counter-reset:c}
+  nav.toc li{counter-increment:c; margin-bottom:6px}
+  nav.toc a{display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px;
+    color:var(--ink); text-decoration:none; font-weight:500; font-size:15px; transition:.15s}
+  nav.toc ol.num a::before{content:counter(c); background:var(--soft); color:var(--main); width:26px; height:26px;
+    border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0}
+  nav.toc a:hover{background:var(--soft)}
+  nav.toc a.active{background:#f5f3ff; color:var(--main)}
+  nav.toc ol.num a.active::before{background:var(--main); color:#fff}
+  nav.toc a.feature{background:linear-gradient(135deg,#7c3aed,#0ea5e9); color:#fff; font-weight:600}
+  nav.toc a.feature:hover{opacity:.92}
+  nav.toc a.feature.active{background:linear-gradient(135deg,#7c3aed,#0ea5e9); color:#fff}
+
+  main.content{flex:1; min-width:0; padding:44px 48px 120px; max-width:880px}
+
+  section{margin-bottom:72px; scroll-margin-top:24px}
+  h2.sec{font-size:27px; margin:0 0 8px; display:flex; align-items:center; gap:14px}
+  h2.sec .n{background:var(--main); color:#fff; width:40px; height:40px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0}
+  .lead{color:var(--muted); font-size:17px; margin:0 0 28px; padding-left:54px}
+  h3{font-size:20px; margin:36px 0 14px}
+  h4{font-size:16px}
+  p{margin:0 0 16px}
+  .fig{background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:28px; margin:24px 0; overflow-x:auto; text-align:center}
+  .fig svg{max-width:100%; height:auto}
+  .fig .cap{color:var(--muted); font-size:14px; margin-top:14px; text-align:center}
+  .analogy{background:linear-gradient(135deg,#fef3c7,#fde68a); border-radius:14px;
+    padding:18px 22px; margin:20px 0; font-size:15px}
+  .analogy b{color:#92400e}
+
+  /* ---- prompt cards: only highlighted parts editable ---- */
+  .pcard{background:var(--card); border:1px solid var(--line); border-radius:14px;
+    margin:18px 0; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .phead{display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--soft); border-bottom:1px solid var(--line)}
+  .phead .tag{background:var(--feat); color:#fff; font-size:13px; padding:4px 12px; border-radius:999px; font-weight:600}
+  .phead .tag.bad{background:var(--issue)}
+  .phead .tag.good{background:var(--local)}
+  .phead .copy{margin-left:auto; background:var(--main); color:#fff; border:none; cursor:pointer;
+    font-size:13px; font-weight:600; padding:7px 16px; border-radius:8px; font-family:inherit; transition:.15s; white-space:nowrap}
+  .phead .copy:hover{background:#6d28d9}
+  .phead .copy.done{background:var(--local)}
+  .pbody{padding:8px 16px 16px; font-size:15px; line-height:2}
+  .pbody .lock{color:var(--ink)}
+  .fill{background:#fff3cd; border:1px dashed var(--pr); border-radius:6px; padding:1px 8px; margin:0 2px;
+    color:#92400e; font-weight:500; outline:none; cursor:text; display:inline-block; min-width:40px; transition:.15s}
+  .fill:hover{background:#ffe9a6}
+  .fill:focus{background:#fff; border-style:solid; border-color:var(--feat); box-shadow:0 0 0 3px rgba(14,165,233,.15)}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin:24px 0}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px}
+  .card h4{margin:0 0 8px; font-size:16px; display:flex; align-items:center; gap:8px}
+  .card p{font-size:14px; color:var(--muted); margin:0}
+  table{width:100%; border-collapse:collapse; margin:24px 0; background:var(--card);
+    border-radius:14px; overflow:hidden; border:1px solid var(--line); font-size:15px}
+  th,td{padding:14px 16px; text-align:left; border-bottom:1px solid var(--line)}
+  th{background:var(--soft); font-weight:600}
+  tr:last-child td{border-bottom:none}
+  .dot{width:12px; height:12px; border-radius:50%; display:inline-block; flex-shrink:0}
+  .tip{border-left:4px solid var(--feat); background:#f0f9ff; padding:14px 18px; border-radius:0 12px 12px 0; margin:18px 0; font-size:15px}
+  .warn{border-left:4px solid var(--issue); background:#fef2f2; padding:14px 18px; border-radius:0 12px 12px 0; margin:18px 0; font-size:15px}
+  .step{display:flex; gap:16px; margin:18px 0; align-items:flex-start}
+  .step .num{background:var(--feat); color:#fff; width:30px; height:30px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0; font-size:14px}
+
+  /* walkthrough step block */
+  .wstep{background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:24px 26px; margin:22px 0; position:relative}
+  .wstep .badge-n{position:absolute; top:-14px; left:24px; background:var(--main); color:#fff;
+    width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:15px; box-shadow:0 2px 8px rgba(124,58,237,.4)}
+  .wstep h4{margin:6px 0 12px; font-size:18px}
+  .kbd{background:#0f172a; color:#e2e8f0; padding:2px 9px; border-radius:6px; font-family:"SF Mono",Menlo,Consolas,monospace; font-size:13px}
+  .urlbox{background:#0f172a; color:#7dd3fc; padding:10px 14px; border-radius:8px; font-family:"SF Mono",Menlo,Consolas,monospace; font-size:13px; word-break:break-all; margin:10px 0}
+
+  footer{text-align:center; color:var(--muted); font-size:14px; padding:40px 0; border-top:1px solid var(--line)}
+  .toast{position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:#fff; padding:12px 22px; border-radius:10px; font-size:14px;
+    opacity:0; pointer-events:none; transition:.25s; z-index:99}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+  @media(max-width:880px){
+    nav.toc{position:static; width:100%; height:auto; border-right:none; border-bottom:1px solid var(--line)}
+    .layout{flex-direction:column}
+    main.content{padding:32px 22px 100px}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="badge">⚡ 专为设计师准备 · 看图就懂</div>
+  <h1>Codex 使用指南</h1>
+  <p>Codex 是 OpenAI 的编程代理,能自己读代码、动手改、跑命令、再检查一遍。它和 Claude Code 长得很像,这一页帮你搞懂它的用法,以及几种形态(命令行/IDE/云端)分别在什么场景用。</p>
+  <p class="crosslink">🧭 <a href="index.html">全部指南</a> · 🎨 <a href="github-guide.html">GitHub 入门</a> · 🤖 <a href="claude-code-guide.html">Claude Code</a></p>
+</header>
+
+<div class="layout">
+
+<nav class="toc">
+  <h2>核心概念</h2>
+  <ol class="num">
+    <li><a href="#overview">代理循环:它怎么"转"</a></li>
+    <li><a href="#s1">Codex 能做什么</a></li>
+    <li><a href="#s2">四种形态:分别在哪用</a></li>
+    <li><a href="#s3">本地线程 vs 云端线程</a></li>
+    <li><a href="#s4">审批模式与沙箱</a></li>
+    <li><a href="#s5">AGENTS.md:项目说明书</a></li>
+  </ol>
+  <h2>实战</h2>
+  <ol>
+    <li><a href="#s6" class="feature">💬 怎样把话说好</a></li>
+    <li><a href="#cheat">⚡ 一页速查表</a></li>
+  </ol>
+</nav>
+
+<main class="content">
+
+<!-- ============ 代理循环 ============ -->
+<section id="overview">
+  <h2 class="sec"><span class="n">★</span>代理循环:它怎么"转"</h2>
+  <p class="lead">你给一个任务,Codex 不是"想一下直接吐结果",而是在一个循环里不断:问模型该干嘛 → 真的动手(读文件/改文件/跑命令) → 拿到结果再接着判断,直到任务完成。</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 780 300" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,sans-serif">
+      <rect x="30" y="30" width="220" height="90" rx="14" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+      <text x="140" y="65" text-anchor="middle" font-size="14" fill="#5b21b6" font-weight="700">🧠 调用模型</text>
+      <text x="140" y="88" text-anchor="middle" font-size="12" fill="#6b7280">想清楚下一步该做什么</text>
+      <rect x="530" y="30" width="220" height="90" rx="14" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="2"/>
+      <text x="640" y="65" text-anchor="middle" font-size="14" fill="#075985" font-weight="700">⚙️ 执行操作</text>
+      <text x="640" y="88" text-anchor="middle" font-size="12" fill="#6b7280">读文件、改文件、跑命令</text>
+      <rect x="280" y="200" width="220" height="90" rx="14" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+      <text x="390" y="235" text-anchor="middle" font-size="14" fill="#065f46" font-weight="700">✅ 检查结果</text>
+      <text x="390" y="258" text-anchor="middle" font-size="12" fill="#6b7280">跑测试、看输出对不对</text>
+      <defs><marker id="ar2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#475569"/></marker></defs>
+      <line x1="250" y1="75" x2="525" y2="75" stroke="#475569" stroke-width="2" marker-end="url(#ar2)"/>
+      <text x="390" y="65" text-anchor="middle" font-size="11" fill="#475569">决定要做的动作</text>
+      <line x1="610" y1="120" x2="440" y2="205" stroke="#475569" stroke-width="2" marker-end="url(#ar2)"/>
+      <text x="565" y="175" text-anchor="middle" font-size="11" fill="#475569">做完自己查一遍</text>
+      <line x1="325" y1="200" x2="185" y2="122" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5,4" marker-end="url(#ar2)"/>
+      <text x="200" y="175" text-anchor="middle" font-size="11" fill="#64748b">没完成就再想一轮</text>
+      <text x="390" y="150" text-anchor="middle" font-size="12" fill="#94a3b8">🔁 循环往复,直到任务完成</text>
+    </svg>
+    <div class="cap">一个简单问答可能只需要转一圈;一次修 bug 会来回转好几轮;复杂重构可能光"检查结果"就要跑很多遍。</div>
+  </div>
+
+  <div class="analogy">🎨 <b>Figma 类比:</b> 跟你改一版设计稿的过程一样:先看参考、想清楚要改哪(调用模型),再动手拉组件、调间距(执行操作),改完对齐检查一遍交互(检查结果)。不满意就再来一轮。Codex 只是把这个循环自动跑起来。</div>
+
+  <p>整个循环由两样东西驱动:<b>模型</b>负责"想"(推理该做什么),<b>工具</b>负责"做"(真的去读文件、改文件、跑命令、搜网页)。你随时可以插话调整方向,不用等它跑完一整轮。</p>
+
+  <div class="tip">💡 Codex 和 Claude Code 底层是同一套"代理循环"思路,所以你在这两个工具之间切换时,说话方式几乎通用。区别主要在<b>命令、几种运行形态、以及项目说明文件叫什么名字</b>(Codex 叫 AGENTS.md,Claude 叫 CLAUDE.md)。</div>
+</section>
+
+<!-- ============ 1. Codex 能做什么 ============ -->
+<section id="s1">
+  <h2 class="sec"><span class="n">1</span>Codex 能做什么</h2>
+  <p class="lead">它不只是"帮你补全代码",而是能完整接手一个开发任务 —— 从看懂现有代码,到动手改,再到自己验证。</p>
+
+  <div class="grid">
+    <div class="card"><h4>✍️ 写代码</h4><p>你描述想要的东西,它生成符合现有项目结构和风格的代码。</p></div>
+    <div class="card"><h4>📖 读懂代码</h4><p>读并解释复杂的、别人写的、或很老的遗留代码,告诉你它在干嘛。</p></div>
+    <div class="card"><h4>🔍 审查代码</h4><p>分析代码找出潜在 bug 和逻辑问题,可以在提交前先审一遍。</p></div>
+    <div class="card"><h4>🐞 调试修复</h4><p>追踪失败在哪、诊断根本原因、给出有针对性的修复方案。</p></div>
+    <div class="card"><h4>🔧 自动化任务</h4><p>接手重构、写测试、做迁移这类重复又繁琐的活。</p></div>
+    <div class="card"><h4>🖼️ 看图 + 联网</h4><p>能读你贴的截图/设计稿、生成和编辑图片、搜网页、接 MCP 外部工具。</p></div>
+  </div>
+
+  <div class="analogy">🎨 <b>Figma 类比:</b> 与其说它是"自动画图的插件",不如说它是一个能看懂整个 Figma 文件、按你的意思接手一块设计工作、做完还会自己对一遍规范的助手 —— 你贴张参考截图给它,它能照着来。</div>
+</section>
+
+<!-- ============ 2. 四种形态 ============ -->
+<section id="s2">
+  <h2 class="sec"><span class="n">2</span>四种形态:分别在哪用</h2>
+  <p class="lead">同一个 Codex,包了好几层"外壳"。底层能力一样,区别只在"你在哪跟它说话""代码在哪跑"。</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 780 210" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,sans-serif">
+      <rect x="15" y="30" width="180" height="150" rx="14" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+      <text x="105" y="60" text-anchor="middle" font-size="26">⌨️</text>
+      <text x="105" y="90" text-anchor="middle" font-size="14" fill="#5b21b6" font-weight="700">CLI 命令行</text>
+      <text x="105" y="118" text-anchor="middle" font-size="11" fill="#6b7280">在终端里跑</text>
+      <text x="105" y="136" text-anchor="middle" font-size="11" fill="#6b7280">最灵活、能脚本化</text>
+      <text x="105" y="160" text-anchor="middle" font-size="11" fill="#6b7280">适合:重度使用</text>
+      <rect x="205" y="30" width="180" height="150" rx="14" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="2"/>
+      <text x="295" y="60" text-anchor="middle" font-size="26">🧩</text>
+      <text x="295" y="90" text-anchor="middle" font-size="14" fill="#075985" font-weight="700">IDE 扩展</text>
+      <text x="295" y="118" text-anchor="middle" font-size="11" fill="#6b7280">装进 VS Code 等</text>
+      <text x="295" y="136" text-anchor="middle" font-size="11" fill="#6b7280">自动带上你开的文件</text>
+      <text x="295" y="160" text-anchor="middle" font-size="11" fill="#6b7280">适合:边写边用</text>
+      <rect x="395" y="30" width="180" height="150" rx="14" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+      <text x="485" y="60" text-anchor="middle" font-size="26">☁️</text>
+      <text x="485" y="90" text-anchor="middle" font-size="14" fill="#065f46" font-weight="700">Cloud 云端</text>
+      <text x="485" y="118" text-anchor="middle" font-size="11" fill="#6b7280">在 OpenAI 云里跑</text>
+      <text x="485" y="136" text-anchor="middle" font-size="11" fill="#6b7280">能并行、后台干活</text>
+      <text x="485" y="160" text-anchor="middle" font-size="11" fill="#6b7280">适合:委派任务</text>
+      <rect x="585" y="30" width="180" height="150" rx="14" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+      <text x="675" y="60" text-anchor="middle" font-size="26">🖥️</text>
+      <text x="675" y="90" text-anchor="middle" font-size="14" fill="#b45309" font-weight="700">App + 集成</text>
+      <text x="675" y="118" text-anchor="middle" font-size="11" fill="#6b7280">桌面应用 / 网页</text>
+      <text x="675" y="136" text-anchor="middle" font-size="11" fill="#6b7280">GitHub、Slack、Linear</text>
+      <text x="675" y="160" text-anchor="middle" font-size="11" fill="#6b7280">适合:团队协作</text>
+    </svg>
+    <div class="cap">四种形态背后是同一个 Codex。选哪个,看你习惯在哪工作、以及这个任务想让它在本地还是云端跑。</div>
+  </div>
+
+  <table>
+    <tr><th>形态</th><th>在哪用</th><th>什么时候选它</th></tr>
+    <tr><td><span class="dot" style="background:var(--main)"></span> CLI 命令行</td><td>你的终端</td><td>最灵活,能写进脚本自动化;重度用户的主力方式</td></tr>
+    <tr><td><span class="dot" style="background:var(--feat)"></span> IDE 扩展</td><td>VS Code 等编辑器里</td><td>边写代码边用,它会自动带上你正打开的文件和选中的代码</td></tr>
+    <tr><td><span class="dot" style="background:var(--local)"></span> Cloud 云端</td><td>chatgpt.com/codex 网页</td><td>把耗时任务丢给它在云端后台跑,还能同时跑好几个</td></tr>
+    <tr><td><span class="dot" style="background:var(--pr)"></span> App + 集成</td><td>桌面应用 / GitHub / Slack</td><td>在 GitHub issue 或 PR 里 @codex 直接触发;团队场景</td></tr>
+  </table>
+
+  <div class="tip">💡 不用纠结"该学哪个"。先从一种开始(设计师一般从 IDE 扩展或网页版最省心),同一份 AGENTS.md 和同样的说话方式在四种形态里都通用。</div>
+</section>
+
+<!-- ============ 3. 本地 vs 云端线程 ============ -->
+<section id="s3">
+  <h2 class="sec"><span class="n">3</span>本地线程 vs 云端线程</h2>
+  <p class="lead">一次对话叫一个"线程"(thread)。线程分两种,区别就是"代码到底在哪台机器上跑"。</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,sans-serif">
+      <rect x="30" y="40" width="320" height="160" rx="16" fill="#f0f9ff" stroke="#0ea5e9" stroke-width="2"/>
+      <text x="190" y="72" text-anchor="middle" font-size="15" fill="#075985" font-weight="700">📍 本地线程</text>
+      <text x="190" y="100" text-anchor="middle" font-size="12" fill="#374151">在你自己电脑上跑</text>
+      <text x="190" y="125" text-anchor="middle" font-size="12" fill="#374151">直接读你的文件、跑你的命令</text>
+      <text x="190" y="150" text-anchor="middle" font-size="12" fill="#374151">在沙箱里执行,实时看到过程</text>
+      <text x="190" y="178" text-anchor="middle" font-size="11" fill="#0ea5e9" font-weight="600">→ 适合:一步步盯着改</text>
+      <rect x="410" y="40" width="320" height="160" rx="16" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+      <text x="570" y="72" text-anchor="middle" font-size="15" fill="#065f46" font-weight="700">☁️ 云端线程</text>
+      <text x="570" y="100" text-anchor="middle" font-size="12" fill="#374151">在 OpenAI 的隔离环境里跑</text>
+      <text x="570" y="125" text-anchor="middle" font-size="12" fill="#374151">能并行、能后台、跨设备委派</text>
+      <text x="570" y="150" text-anchor="middle" font-size="12" fill="#374151">改动以 Pull Request 形式给你审</text>
+      <text x="570" y="178" text-anchor="middle" font-size="11" fill="#10b981" font-weight="600">→ 适合:丢过去自己跑</text>
+    </svg>
+    <div class="cap">本地线程像"你在旁边看着它改";云端线程像"把任务派出去,它在别处做完再把成果交给你审"。</div>
+  </div>
+
+  <div class="analogy">🎨 <b>Figma 类比:</b> 本地线程 = 你和它共享同一个屏幕、一起改当前这份文件;云端线程 = 你把一块设计需求派给远程同事,他在自己那边做完,再开一个"待评审"给你看,你确认了才合进主文件。</div>
+
+  <div class="tip">💡 云端任务最省心的入口是 GitHub:在 issue 或 PR 里评论 <span class="kbd">@codex</span> 加上你的要求,它就会在云端接手,做完直接提一个 PR。你只需要像审设计稿一样审它的改动。</div>
+
+  <div class="warn">⚠️ 让它联网前想一下:云端环境是否要访问公网、能用哪些工具,这些是你在环境配置里自己决定的。不确定就先关掉联网,只让它在仓库范围内干活。</div>
+</section>
+
+<!-- ============ 4. 审批模式与沙箱 ============ -->
+<section id="s4">
+  <h2 class="sec"><span class="n">4</span>审批模式与沙箱</h2>
+  <p class="lead">两道保险:沙箱(sandbox)把它的动作圈在一个安全范围内;审批模式(approval)决定哪些动作要先问你、哪些可以自己做。</p>
+
+  <h3>沙箱:它的动作被圈在安全范围里</h3>
+  <p>Codex 执行操作时是在一个沙箱里跑的 —— 相当于给它一个"隔离的工作台",它改文件、跑命令都在这个范围内,不会随便碰到范围外的东西。真正有风险的动作(比如联网、改沙箱外的文件)会被拦下来问你。</p>
+
+  <h3>审批模式:哪些事要先问你</h3>
+  <p>在动手改文件、跑命令之前,Codex 可以按你设的"审批级别"来决定要不要先征求你同意。你可以按自己对自动化的接受程度来调:</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 780 160" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,sans-serif">
+      <rect x="30" y="35" width="220" height="90" rx="14" fill="#f3f4f6" stroke="#6b7280" stroke-width="2"/>
+      <text x="140" y="68" text-anchor="middle" font-size="14" fill="#374151" font-weight="700">🙋 每步都问</text>
+      <text x="140" y="92" text-anchor="middle" font-size="11.5" fill="#6b7280">改文件、跑命令前</text>
+      <text x="140" y="109" text-anchor="middle" font-size="11.5" fill="#6b7280">都停下来等你点头</text>
+      <rect x="280" y="35" width="220" height="90" rx="14" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="2"/>
+      <text x="390" y="68" text-anchor="middle" font-size="14" fill="#075985" font-weight="700">⚖️ 只问重要的</text>
+      <text x="390" y="92" text-anchor="middle" font-size="11.5" fill="#6b7280">常规改动自己做</text>
+      <text x="390" y="109" text-anchor="middle" font-size="11.5" fill="#6b7280">有风险的才问你</text>
+      <rect x="530" y="35" width="220" height="90" rx="14" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+      <text x="640" y="68" text-anchor="middle" font-size="14" fill="#065f46" font-weight="700">🏃 放手去做</text>
+      <text x="640" y="92" text-anchor="middle" font-size="11.5" fill="#6b7280">大部分动作不打扰你</text>
+      <text x="640" y="109" text-anchor="middle" font-size="11.5" fill="#6b7280">适合信得过的重复任务</text>
+      <defs><marker id="ar4" markerWidth="9" markerHeight="9" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5 Z" fill="#475569"/></marker></defs>
+      <line x1="250" y1="80" x2="275" y2="80" stroke="#475569" stroke-width="2" marker-end="url(#ar4)"/>
+      <line x1="500" y1="80" x2="525" y2="80" stroke="#475569" stroke-width="2" marker-end="url(#ar4)"/>
+      <text x="390" y="150" text-anchor="middle" font-size="11" fill="#94a3b8">← 越往右越自动,打扰越少;越往左越谨慎,你掌控越多 →</text>
+    </svg>
+    <div class="cap">刚上手、或改的是重要代码时,用"每步都问";熟了、或是跑一批放心的重复任务时,再放宽。</div>
+  </div>
+
+  <div class="analogy">🎨 <b>Figma 类比:</b> 就像给一个新来的实习生设权限:一开始"改任何东西都先问我",信任建立后再逐步开放"这类小改你自己来就行,大改动再喊我"。</div>
+
+  <div class="tip">💡 用 <span class="kbd">/model</span> 可以随时切换模型或调整"推理强度"(想得更快还是想得更深)。任务简单就快一点,任务烧脑就让它多想一会。</div>
+</section>
+
+<!-- ============ 5. AGENTS.md ============ -->
+<section id="s5">
+  <h2 class="sec"><span class="n">5</span>AGENTS.md:项目说明书</h2>
+  <p class="lead">AGENTS.md 是你写给 Codex 看的一份说明书。每次它在这个项目里干活都会先读,省得你每次都重复交代同样的规矩。</p>
+
+  <p>它就是一个放在项目根目录的普通 Markdown 文件,写这个项目"怎么装依赖、怎么跑测试、代码风格是什么、提交信息怎么写"等等。没有必填字段,想写什么标题都行。已经有超过 6 万个开源项目在用这个格式。</p>
+
+  <div class="urlbox">## Setup commands<br>- 安装依赖: `pnpm install`<br>- 启动开发服务器: `pnpm dev`<br>- 跑测试: `pnpm test`<br><br>## Code style<br>- TypeScript strict mode<br>- 用单引号, 不加分号</div>
+
+  <div class="analogy">🎨 <b>Figma 类比:</b> 就像你在团队文件最前面钉一页"设计规范说明":配色、字号、组件命名规则、间距系统。新来的人(或 AI)先看这一页,就不会乱来。AGENTS.md 就是给 Codex 看的那一页。</div>
+
+  <div class="tip">💡 <b>可以分层放。</b> 大项目里每个子文件夹都能有自己的 AGENTS.md,Codex 会自动读离它正在改的文件<b>最近</b>的那一份。所以子模块可以有自己更具体的规矩,不冲突。</div>
+
+  <div class="tip">💡 <b>优先级:</b> 离改动文件最近的 AGENTS.md 优先;而你当场在对话里说的话,<b>永远盖过</b> AGENTS.md 里写的。所以临时想破个例,直接说就行。</div>
+
+  <div class="pcard">
+    <div class="phead"><span class="tag">让 Codex 帮你起草 AGENTS.md</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
+    <div class="pbody"><span class="lock">帮我在项目根目录创建一份 AGENTS.md。先看一下项目结构和 package.json,总结出:怎么装依赖、怎么启动、怎么跑测试,以及你观察到的代码风格约定。写好后让我确认。</span></div>
+  </div>
+
+  <div class="analogy">🧩 <b>和 Claude Code 的对应关系:</b> AGENTS.md 之于 Codex,就等于 CLAUDE.md 之于 Claude Code —— 作用一模一样,只是文件名不同。如果你两个工具都用,可以让其中一份内容互相参考。</div>
+</section>
+
+<!-- ============ 6. 怎样把话说好 ============ -->
+<section id="s6">
+  <h2 class="sec"><span class="n">💬</span>怎样把话说好</h2>
+  <p class="lead">这几条来自 Codex 官方 prompting 文档,是能实打实提高第一次成功率的说话方式。</p>
+
+  <div class="wstep">
+    <div class="badge-n">1</div>
+    <h4>给它一个能自己核对的标准</h4>
+    <p>官方原话:Codex 在<b>能验证自己工作</b>的时候,产出质量更高。所以尽量告诉它:怎么复现问题、怎么算做对了、跑哪个检查能确认。</p>
+    <div class="pcard">
+      <div class="phead"><span class="tag bad">没有验证标准</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
+      <div class="pbody"><span class="lock">把这个函数修一下。</span></div>
+    </div>
+    <div class="pcard">
+      <div class="phead"><span class="tag good">带验证标准</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
+      <div class="pbody"><span class="lock">修复 </span><span class="fill" contenteditable="true">validateEmail</span><span class="lock"> 函数。它现在对 </span><span class="fill" contenteditable="true">'user@.com'</span><span class="lock"> 会误判为有效。改完跑 </span><span class="fill" contenteditable="true">pnpm test</span><span class="lock"> 确认所有测试通过,再告诉我结果。</span></div>
+    </div>
+  </div>
+
+  <div class="wstep">
+    <div class="badge-n">2</div>
+    <h4>把大任务拆成小步</h4>
+    <p>官方原话:任务拆成更小、更聚焦的步骤时,Codex 做得更好 —— 也更容易测试、更容易让你审、更不容易出错。</p>
+    <div class="pcard">
+      <div class="phead"><span class="tag">先做第一小步</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
+      <div class="pbody"><span class="lock">我们要把 </span><span class="fill" contenteditable="true">登录页</span><span class="lock"> 从 JavaScript 迁移到 TypeScript。先只处理 </span><span class="fill" contenteditable="true">这一个文件</span><span class="lock">,改完确认能通过类型检查,我看过之后再继续下一个。</span></div>
+    </div>
+  </div>
+
+  <div class="wstep">
+    <div class="badge-n">3</div>
+    <h4>不知道怎么拆?让它先出计划</h4>
+    <p>官方建议:如果你自己也不确定该怎么分解,直接让 Codex 先提一个执行计划,你看过、调整过,再让它动手。</p>
+    <div class="pcard">
+      <div class="phead"><span class="tag">先出方案再动手</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
+      <div class="pbody"><span class="lock">我想给这个项目 </span><span class="fill" contenteditable="true">加上深色模式</span><span class="lock">。先别改代码,先看一下现有的样式是怎么组织的,给我一个分步计划。我确认后你再实现。</span></div>
+    </div>
+  </div>
+
+  <div class="wstep">
+    <div class="badge-n">4</div>
+    <h4>多步骤大目标,用 Goal Mode</h4>
+    <p>对于步骤多、需要明确"完成标准"的活,可以用 <span class="kbd">/goal</span> 给它一个持久目标。目标要写得<b>具体、可衡量</b>,它会朝这个目标持续推进,你随时能补充约束或暂停。</p>
+    <div class="pcard">
+      <div class="phead"><span class="tag">一个可衡量的目标</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
+      <div class="pbody"><span class="lock">目标:把 </span><span class="fill" contenteditable="true">首页</span><span class="lock"> 的可交互时间(TTI)降到 </span><span class="fill" contenteditable="true">1 秒</span><span class="lock"> 以内。你可以自己分析、动手优化,每完成一个改动告诉我效果。</span></div>
+    </div>
+    <div class="tip">💡 Goal Mode 需要在 <span class="kbd">config.toml</span> 里打开 <span class="kbd">features.goals</span>。不确定怎么开?直接问 Codex "帮我开启 goal 功能"。</div>
+  </div>
+
+  <div class="wstep">
+    <div class="badge-n">5</div>
+    <h4>主动喂上下文,别让它猜</h4>
+    <p>提到具体文件、贴上截图、说清楚约束,它的判断质量会明显更好。用 IDE 扩展时,它会自动带上你正打开的文件和选中的代码,省得你复制粘贴。</p>
+    <div class="pcard">
+      <div class="phead"><span class="tag">带足上下文</span><button class="copy" onclick="copyPrompt(this)">复制</button></div>
+      <div class="pbody"><span class="lock">这是设计稿截图[贴图]。请对照它检查 </span><span class="fill" contenteditable="true">src/components/Card.tsx</span><span class="lock"> 实现出来的效果,列出哪里和设计不一致,再帮我改到一致。</span></div>
+    </div>
+  </div>
+
+  <div class="tip">💡 <b>不知道某个功能怎么用?直接问它。</b> 比如"怎么切换模型?""怎么把任务丢到云端跑?",Codex 会直接告诉你。它和 Claude Code 一样,把它当靠谱同事委派,而不是当命令行背指令。</div>
+</section>
+
+<section id="cheat">
+  <h2 class="sec"><span class="n">⚡</span>一页速查表</h2>
+  <p class="lead">贴在手边,忘了就看这张。</p>
+  <table>
+    <tr><th>想做的事</th><th>怎么操作</th></tr>
+    <tr><td>安装 Codex CLI(Mac/Linux)</td><td><span class="kbd">curl -fsSL https://chatgpt.com/codex/install.sh | sh</span></td></tr>
+    <tr><td>启动交互式会话</td><td>终端里输入 <span class="kbd">codex</span>(首次会让你用 ChatGPT 账号或 API key 登录)</td></tr>
+    <tr><td>切换模型 / 调推理强度</td><td><span class="kbd">/model</span></td></tr>
+    <tr><td>开一个持久目标</td><td><span class="kbd">/goal</span>(需先开启 features.goals)</td></tr>
+    <tr><td>脚本化 / 自动跑重复任务</td><td><span class="kbd">codex exec</span></td></tr>
+    <tr><td>把任务丢到云端跑</td><td>去 <span class="kbd">chatgpt.com/codex</span>,或在 GitHub issue/PR 里 <span class="kbd">@codex</span></td></tr>
+    <tr><td>给项目定规矩</td><td>在根目录放一份 <span class="kbd">AGENTS.md</span></td></tr>
+    <tr><td>让改动更靠谱</td><td>提示里带上"怎么验证 + 跑哪个测试"</td></tr>
+    <tr><td>大任务卡住了</td><td>让它"先出计划别动手",或用 Goal Mode 拆解</td></tr>
+    <tr><td>需要用户级 / 企业管理</td><td>看官方文档的 authentication、agent internet access 等章节</td></tr>
+  </table>
+  <div class="tip">💡 需要 ChatGPT Plus、Pro、Business、Edu 或 Enterprise 计划才能用 Codex。</div>
+</section>
+
+<footer>
+  Codex 使用指南 · 为设计师而做 ⚡ &nbsp;|&nbsp; 记住核心:说清目标 + 给验证标准,剩下的交给它。
+</footer>
+
+</main>
+</div>
+
+<div class="toast" id="toast">已复制 ✅</div>
+
+<script>
+function copyPrompt(btn){
+  var card = btn.closest('.pcard');
+  var body = card.querySelector('.pbody');
+  var text = (body.innerText || body.textContent).replace(/\s+/g,' ').trim();
+  var done = function(){
+    btn.textContent = '已复制 ✅'; btn.classList.add('done'); showToast();
+    setTimeout(function(){ btn.textContent='复制'; btn.classList.remove('done'); }, 1600);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done, function(){ legacy(text); done(); });
+  } else { legacy(text); done(); }
+}
+function legacy(text){
+  var t=document.createElement('textarea'); t.value=text; t.style.position='fixed'; t.style.opacity='0';
+  document.body.appendChild(t); t.select(); try{document.execCommand('copy');}catch(e){} document.body.removeChild(t);
+}
+var toastTimer;
+function showToast(){
+  var t=document.getElementById('toast'); t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.classList.remove('show'); }, 1500);
+}
+// keep editable fills on one line (no line breaks pasted)
+document.querySelectorAll('.fill').forEach(function(f){
+  f.addEventListener('keydown', function(e){ if(e.key==='Enter') e.preventDefault(); });
+  f.addEventListener('paste', function(e){
+    e.preventDefault();
+    var txt=(e.clipboardData||window.clipboardData).getData('text').replace(/\n/g,' ');
+    document.execCommand('insertText', false, txt);
+  });
+});
+// active TOC highlight
+var links=document.querySelectorAll('nav.toc a');
+var secs=Array.prototype.map.call(links,function(a){return document.querySelector(a.getAttribute('href'));});
+function onScroll(){
+  var pos=window.scrollY+120, idx=0;
+  secs.forEach(function(s,i){ if(s && s.offsetTop<=pos) idx=i; });
+  links.forEach(function(a,i){ a.classList.toggle('active', i===idx); });
+}
+window.addEventListener('scroll', onScroll); onScroll();
+</script>
+</body>
+</html>
